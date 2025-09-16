@@ -168,6 +168,7 @@ def generate_dish_image(dish_name, pipe):
         return None
         
     try:
+        print(f"Generating image for {dish_name}")
         prompt = f"A high-quality professional photograph of {dish_name}, food photography, appetizing"
         image = pipe(
             prompt,
@@ -176,6 +177,7 @@ def generate_dish_image(dish_name, pipe):
             max_sequence_length=256,
             generator=torch.Generator("cpu").manual_seed(0)
         ).images[0]
+        image.save(f"images/{dish_name}.png")
         return image
     except Exception as e:
         st.error(f"Error generating image: {e}")
@@ -212,6 +214,7 @@ def main():
         # Extract menu items using vision model
         with st.spinner("🔍 Analyzing menu with AI vision..."):
             menu_items = extract_menu_items(image, menu_model, menu_processor)
+            print(f"Menu items: {menu_items}")
         
         if menu_items:
             st.success(f"Found {len(menu_items)} menu items!")
