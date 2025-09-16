@@ -177,7 +177,6 @@ def generate_dish_image(dish_name, pipe):
             max_sequence_length=256,
             generator=torch.Generator("cpu").manual_seed(0)
         ).images[0]
-        image.save(f"images/{dish_name}.png")
         return image
     except Exception as e:
         st.error(f"Error generating image: {e}")
