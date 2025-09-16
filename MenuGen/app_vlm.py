@@ -87,7 +87,6 @@ def extract_menu_items(image, model, processor):
 def parse_dish_names_from_response(response_text):
     """
     Parse SmolVLM2's natural language response to extract dish names
-    Handles both line-separated and comma-separated dish lists
     """
     dishes = []
     
@@ -116,56 +115,20 @@ def parse_dish_names_from_response(response_text):
         clean_line = re.sub(r'\s*[-–]\s*[$€£¥₹][\d\.,]+.*$', '', clean_line)
         clean_line = re.sub(r'\s*[$€£¥₹][\d\.,]+.*$', '', clean_line)
         
-        # Check if this line contains multiple comma-separated dishes
-        if ',' in clean_line and len(clean_line) > 50:  # Likely comma-separated list
-            # Split by commas and process each dish
-            comma_dishes = clean_line.split(',')
-            for dish in comma_dishes:
-                dish = dish.strip()
-                # Remove any remaining prefixes from individual dishes
-                dish = re.sub(r'^[\d\.\-•\*\s]*', '', dish).strip()
-                # Remove parenthetical descriptions if they're at the end
-                dish = re.sub(r'\s*\([^)]*\)$', '', dish).strip()
-                
-                if dish and len(dish) > 2:
-                    dishes.append(dish)
-        else:
-            # Single dish per line
-            if clean_line and len(clean_line) > 2:
-                dishes.append(clean_line.strip())
+        if clean_line and len(clean_line) > 2:
+            dishes.append(clean_line.strip())
     
     # Remove duplicates while preserving order
     seen = set()
     unique_dishes = []
     for dish in dishes:
-        dish_clean = dish.strip()
-        if dish_clean and dish_clean.lower() not in seen and len(dish_clean) > 2:
-            seen.add(dish_clean.lower())
-            unique_dishes.append(dish_clean)
+        if dish.lower() not in seen:
+            seen.add(dish.lower())
+            unique_dishes.append(dish)
     
     return unique_dishes[:15]  # Limit to 15 dishes to avoid overwhelming the UI
 
-# Keep existing ingredient and image generation functions
-@st.cache_resource
-def load_ingredient_generator():
-    """Load model for ingredient generation"""
-    try:
-        pipe = pipeline("text-generation", model="flax-community/t5-recipe-generation")
-        return pipe
-    except Exception as e:
-        st.error(f"Failed to load ingredient generator: {e}")
-        return None
-
-def get_ingredients(dish_name, pipe):
-    """Generate ingredients for a dish"""
-    if pipe is None:
-        return f"Ingredients for {dish_name}: Unable to generate (model not loaded)"
-    
-    try:
-        ingredients = pipe(f"ingredients for {dish_name}", max_length=150, do_sample=True)
-        return ingredients[0]['generated_text']
-    except Exception as e:
-        return f"Error generating ingredients: {e}"
+# Image generation functions only
 
 @st.cache_resource
 def load_image_generator():
@@ -189,7 +152,13 @@ def generate_dish_image(dish_name, pipe):
         
     try:
         prompt = f"A high-quality professional photograph of {dish_name}, food photography, appetizing"
-        image = pipe(prompt, num_inference_steps=4).images[0]
+        image = pipe(
+            prompt,
+            guidance_scale=0.0,
+            num_inference_steps=4,
+            max_sequence_length=256,
+            generator=torch.Generator("cpu").manual_seed(0)
+        ).images[0]
         return image
     except Exception as e:
         st.error(f"Error generating image: {e}")
@@ -217,86 +186,71 @@ def main():
             st.write("🔮 Loading SmolVLM2 menu understanding model...")
             menu_model, menu_processor = load_menu_understanding_model()
             
-            st.write("🥘 Loading ingredient generator...")
-            ingredient_pipe = load_ingredient_generator()
-            
             st.write("🎨 Loading image generator...")
             image_pipe = load_image_generator()
             
             status.update(label="✅ Models loaded successfully!", state="complete")
         
-        if st.button("🚀 Process Menu", type="primary"):
+        # Automatically start processing after models are loaded
+        # Extract menu items using vision model
+        with st.spinner("🔍 Analyzing menu with AI vision..."):
+            menu_items = extract_menu_items(image, menu_model, menu_processor)
+        
+        if menu_items:
+            st.success(f"Found {len(menu_items)} menu items!")
             
-            # Extract menu items using vision model
-            with st.spinner("🔍 Analyzing menu with AI vision..."):
-                menu_items = extract_menu_items(image, menu_model, menu_processor)
+            # Display found items
+            with st.expander("📋 Detected Menu Items", expanded=True):
+                for i, item in enumerate(menu_items, 1):
+                    st.write(f"{i}. {item}")
             
-            if menu_items:
-                st.success(f"Found {len(menu_items)} menu items!")
+            # Automatically generate images for all dishes
+            st.subheader("🎨 Generated Images for All Dishes")
+            
+            # Create progress bar
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            for idx, dish_name in enumerate(menu_items):
+                # Update progress
+                progress = (idx + 1) / len(menu_items)
+                progress_bar.progress(progress)
+                status_text.text(f"Processing {dish_name} ({idx + 1}/{len(menu_items)})...")
                 
-                # Display found items
-                with st.expander("📋 Detected Menu Items", expanded=True):
-                    for i, item in enumerate(menu_items, 1):
-                        st.write(f"{i}. {item}")
-                
-                # Automatically generate content for all dishes
-                st.subheader("🎨 Generated Content for All Dishes")
-                
-                # Create progress bar
-                progress_bar = st.progress(0)
-                status_text = st.empty()
-                
-                for idx, dish_name in enumerate(menu_items):
-                    # Update progress
-                    progress = (idx + 1) / len(menu_items)
-                    progress_bar.progress(progress)
-                    status_text.text(f"Processing {dish_name} ({idx + 1}/{len(menu_items)})...")
-                    
-                    # Create expandable section for each dish
-                    with st.expander(f"🍽️ {dish_name}", expanded=True):
-                        col1, col2 = st.columns(2)
-                        
-                        # Generate ingredients
-                        with col1:
-                            st.subheader("🥗 Ingredients")
-                            with st.spinner(f"Finding ingredients..."):
-                                ingredients = get_ingredients(dish_name, ingredient_pipe)
-                                st.write(ingredients)
-                        
-                        # Generate image
-                        with col2:
-                            st.subheader("📸 Generated Image")
-                            with st.spinner(f"Creating image..."):
-                                dish_image = generate_dish_image(dish_name, image_pipe)
-                                if dish_image:
-                                    st.image(
-                                        dish_image, 
-                                        caption=f"AI-generated image of {dish_name}",
-                                        use_column_width=True
-                                    )
-                                else:
-                                    st.warning("Could not generate image for this dish")
-                
-                # Clear progress indicators
-                progress_bar.empty()
-                status_text.empty()
-                
-                st.success(f"✅ Generated content for all {len(menu_items)} dishes!")
-            else:
-                st.warning("🤔 Could not identify any dishes from the menu. Please try with a clearer image.")
-                st.info("💡 Tips: Ensure the menu text is clearly visible and well-lit")
+                # Create expandable section for each dish
+                with st.expander(f"🍽️ {dish_name}", expanded=True):
+                    # Generate image only
+                    st.subheader("📸 Generated Image")
+                    with st.spinner(f"Creating image..."):
+                        dish_image = generate_dish_image(dish_name, image_pipe)
+                        if dish_image:
+                            st.image(
+                                dish_image, 
+                                caption=f"AI-generated image of {dish_name}",
+                                use_column_width=True
+                            )
+                        else:
+                            st.warning("Could not generate image for this dish")
+            
+            # Clear progress indicators
+            progress_bar.empty()
+            status_text.empty()
+            
+            st.success(f"✅ Generated images for all {len(menu_items)} dishes!")
+        else:
+            st.warning("🤔 Could not identify any dishes from the menu. Please try with a clearer image.")
+            st.info("💡 Tips: Ensure the menu text is clearly visible and well-lit")
 
     # Sidebar with information
     with st.sidebar:
         st.markdown("### 🤖 AI Models Used")
         st.markdown("- **Menu Understanding**: SmolVLM2 (2.2B params)")
-        st.markdown("- **Ingredient Generation**: T5 Recipe Model") 
         st.markdown("- **Image Generation**: FLUX.1")
         
         st.markdown("### ✨ Features")
         st.markdown("- 🔍 Ultra-efficient vision-language understanding")
-        st.markdown("- 🥗 AI-powered ingredient suggestions")
         st.markdown("- 🎨 AI-generated dish images")
+        st.markdown("- ⚡ Automatic processing (no button clicks needed)")
         st.markdown("- ⚡ Optimized for low GPU memory usage")
         st.markdown("- 🚀 Fast inference with SmolVLM2")
         
