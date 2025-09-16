@@ -14,13 +14,12 @@ Transform restaurant menu images into actionable culinary content using cutting-
 - **Smart Filtering**: Removes prices, descriptions, and formatting artifacts
 
 ### 🎨 **AI-Powered Content Generation**
-- **Recipe Ingredients**: T5-based ingredient generation for each dish
 - **Professional Food Photography**: FLUX.1 generates high-quality dish images
 - **Batch Processing**: Automatically processes all detected dishes simultaneously
 
 ### 📊 **Enhanced User Experience**
 - **Real-time Progress Tracking**: Visual progress bars and status updates
-- **Organized Results**: Expandable sections with side-by-side content display
+- **Organized Results**: Expandable sections for each detected dish
 - **Responsive Design**: Clean, modern Streamlit interface
 - **Error Resilience**: Graceful handling of failures with informative messages
 
@@ -29,8 +28,8 @@ Transform restaurant menu images into actionable culinary content using cutting-
 MenuGen features a **dual architecture** approach:
 
 ### 🥇 **Primary: VLM-Based Application** (`app_vlm.py`)
-- **Technology**: SmolVLM2-2.2B-Instruct + T5 + FLUX.1
-- **Workflow**: Upload → AI Vision Analysis → Auto-generate All Dishes → Results
+- **Technology**: SmolVLM2-2.2B-Instruct + FLUX.1
+- **Workflow**: Upload → AI Vision Analysis → Auto-generate Dish Images → Results
 - **Benefits**: No OCR preprocessing, better accuracy, complete menu coverage
 
 ### 🥈 **Legacy: OCR-Based Application** (`app.py`)
@@ -84,7 +83,7 @@ streamlit run app.py
 1. **Launch the app**: `streamlit run app_vlm.py`
 2. **Upload menu image**: Choose a clear photo of a restaurant menu
 3. **AI Analysis**: SmolVLM2 automatically detects all dishes
-4. **Auto-generation**: Watch as ingredients and images generate for each dish
+4. **Auto-generation**: Watch as professional food images generate for each dish
 5. **Explore results**: Browse through organized, expandable sections
 
 ### Sample Workflow
@@ -97,10 +96,10 @@ streamlit run app.py
     ↓
 📋 Complete Results:
    🍽️ Chicken Tikka Masala
-      🥗 Ingredients: chicken, yogurt, tomatoes, spices...
       📸 AI-generated professional food photo
    🍽️ Beef Biryani
-      🥗 Ingredients: beef, basmati rice, saffron...
+      📸 AI-generated professional food photo
+   🍽️ Lamb Curry
       📸 AI-generated professional food photo
    ... (continues for all dishes)
 ```
@@ -110,7 +109,6 @@ streamlit run app.py
 | Component | Model | Size | Purpose |
 |-----------|--------|------|---------|
 | **Menu Understanding** | SmolVLM2-2.2B-Instruct | 2.2B params | Direct image→text analysis |
-| **Ingredient Generation** | T5 Recipe Generation | - | Recipe ingredients from dish names |
 | **Image Generation** | FLUX.1-schnell | - | Professional food photography |
 
 ### Model Performance
@@ -127,13 +125,7 @@ MenuGen/
 ├── 📱 app.py                  # Legacy OCR-based application
 ├── 📋 requirements_vlm.txt    # VLM dependencies
 ├── 📋 requirements.txt        # OCR dependencies
-├── 🧪 test_smolvlm.py         # SmolVLM2 testing script
-├── 📊 MODEL_COMPARISON.md     # Detailed model analysis
-├── 🔧 .cursor/rules/          # Development guidelines
-│   ├── app-architecture.mdc
-│   ├── ai-ml-best-practices.mdc
-│   └── ... (comprehensive rules)
-└── 📁 examples/               # Sample menu images and demos
+└── 📖 README.md               # Project documentation
 ```
 
 ## ⚙️ Configuration
@@ -144,25 +136,17 @@ MenuGen/
 - Memory-efficient model loading with caching
 
 ### Customization Options
-- **Debug Mode**: Enable in sidebar to see raw model outputs
-- **Model Selection**: Easy switching between different VLM models
-- **Batch Size**: Configurable processing parameters
+- **Debug Mode**: Enable in sidebar to see raw SmolVLM2 model outputs
+- **GPU/CPU Detection**: Automatic optimization based on available hardware
+- **Progress Tracking**: Real-time status updates during batch processing
 
 ## 🧪 Testing
 
-### Test Scripts
-```bash
-# Test SmolVLM2 model performance
-python test_smolvlm.py
-
-# General VLM model testing
-python test_vlm.py
-```
-
-### Validation
-- Test with diverse menu types (Italian, Asian, American, etc.)
-- Validate GPU/CPU compatibility
-- Benchmark processing speeds and accuracy
+### Manual Testing
+1. **Test with diverse menu types** (Italian, Asian, American, etc.)
+2. **Validate GPU/CPU compatibility** using the debug mode in the sidebar
+3. **Benchmark processing speeds** by monitoring the progress indicators
+4. **Test image quality** with different menu photo styles and lighting conditions
 
 ## 🤝 Contributing
 
@@ -176,10 +160,10 @@ We welcome contributions! Please see our development workflow:
 6. **Open** a Pull Request
 
 ### Development Guidelines
-- Follow the Cursor Rules in `.cursor/rules/`
-- Use the VLM application as the primary development target
+- Use the VLM application (`app_vlm.py`) as the primary development target
 - Test both GPU and CPU compatibility
 - Update documentation for new features
+- Follow Python best practices for AI/ML applications
 
 ## 📈 Performance & Hardware
 
@@ -210,7 +194,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Bug Reports**: [GitHub Issues](https://github.com/hiteshK03/MenuGen/issues)
 - **Feature Requests**: [GitHub Discussions](https://github.com/hiteshK03/MenuGen/discussions)
-- **Documentation**: See `.cursor/rules/` for detailed development guides
+- **Documentation**: See this README for usage and development information
 
 ---
 
