@@ -1,0 +1,81 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Streamlit
+.streamlit/secrets.toml
+.streamlit/config.toml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model caches
+.cache/
+huggingface/
+models/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Images (except examples)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+!examples/**/*.jpg
+!examples/**/*.jpeg
+!examples/**/*.png
+
+# GPU memory dumps
+*.dump
+
+# Jupyter
+.ipynb_checkpoints/
+
+# pytest
+.pytest_cache/
