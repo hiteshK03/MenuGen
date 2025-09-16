@@ -22,7 +22,7 @@ def load_menu_understanding_model():
         processor = AutoProcessor.from_pretrained("HuggingFaceTB/SmolVLM2-2.2B-Instruct")
         model = AutoModelForImageTextToText.from_pretrained(
             "HuggingFaceTB/SmolVLM2-2.2B-Instruct",
-            torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
+            dtype=torch.bfloat16,
             device_map="auto" if torch.cuda.is_available() else "cpu"
         )
         
@@ -37,6 +37,7 @@ def extract_menu_items(image, model, processor):
     Returns list of dish names found in the menu
     """
     if model is None or processor is None:
+        print("Model or processor is None")
         return []
     
     try:
@@ -54,10 +55,17 @@ def extract_menu_items(image, model, processor):
         # Apply chat template and process
         prompt = processor.apply_chat_template(messages, add_generation_prompt=True)
         inputs = processor(text=prompt, images=[image], return_tensors="pt")
+
         
         # Move inputs to the same device as model
         if hasattr(model, 'device'):
-            inputs = {k: v.to(model.device) if torch.is_tensor(v) else v for k, v in inputs.items()}
+            # Only convert specific tensors to bfloat16, keep token IDs as integers
+            inputs = {
+                k: (v.to(model.device, dtype=torch.bfloat16) if torch.is_tensor(v) and k == 'pixel_values' 
+                   else v.to(model.device) if torch.is_tensor(v) 
+                   else v) 
+                for k, v in inputs.items()
+            }
         
         # Generate response
         with torch.no_grad():
@@ -154,7 +162,7 @@ def load_image_generator():
         model_id = "black-forest-labs/FLUX.1-schnell"
         pipe = FluxPipeline.from_pretrained(
             model_id, 
-            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32
+            torch_dtype=torch.float16
         )
         pipe = pipe.to("cuda" if torch.cuda.is_available() else "cpu")
         return pipe

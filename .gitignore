@@ -81,3 +81,4 @@ temp/
 
 # pytest
 .pytest_cache/
+.gradio/
