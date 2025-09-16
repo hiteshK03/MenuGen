@@ -87,6 +87,7 @@ def extract_menu_items(image, model, processor):
 def parse_dish_names_from_response(response_text):
     """
     Parse SmolVLM2's natural language response to extract dish names
+    Handles both line-separated and comma-separated dish lists
     """
     dishes = []
     
@@ -115,16 +116,32 @@ def parse_dish_names_from_response(response_text):
         clean_line = re.sub(r'\s*[-–]\s*[$€£¥₹][\d\.,]+.*$', '', clean_line)
         clean_line = re.sub(r'\s*[$€£¥₹][\d\.,]+.*$', '', clean_line)
         
-        if clean_line and len(clean_line) > 2:
-            dishes.append(clean_line.strip())
+        # Check if this line contains multiple comma-separated dishes
+        if ',' in clean_line and len(clean_line) > 50:  # Likely comma-separated list
+            # Split by commas and process each dish
+            comma_dishes = clean_line.split(',')
+            for dish in comma_dishes:
+                dish = dish.strip()
+                # Remove any remaining prefixes from individual dishes
+                dish = re.sub(r'^[\d\.\-•\*\s]*', '', dish).strip()
+                # Remove parenthetical descriptions if they're at the end
+                dish = re.sub(r'\s*\([^)]*\)$', '', dish).strip()
+                
+                if dish and len(dish) > 2:
+                    dishes.append(dish)
+        else:
+            # Single dish per line
+            if clean_line and len(clean_line) > 2:
+                dishes.append(clean_line.strip())
     
     # Remove duplicates while preserving order
     seen = set()
     unique_dishes = []
     for dish in dishes:
-        if dish.lower() not in seen:
-            seen.add(dish.lower())
-            unique_dishes.append(dish)
+        dish_clean = dish.strip()
+        if dish_clean and dish_clean.lower() not in seen and len(dish_clean) > 2:
+            seen.add(dish_clean.lower())
+            unique_dishes.append(dish_clean)
     
     return unique_dishes[:15]  # Limit to 15 dishes to avoid overwhelming the UI
 
