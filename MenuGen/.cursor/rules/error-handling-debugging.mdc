@@ -1,0 +1,62 @@
+---
+globs: *.py
+description: Error handling and debugging strategies for AI applications
+---
+
+# Error Handling and Debugging Guidelines
+
+## Common Failure Points in MenuGen
+
+1. **Image Upload Issues**: Invalid file formats, corrupted images, oversized files
+2. **OCR Failures**: Poor image quality, unsupported languages, preprocessing errors
+3. **Model Loading**: Network issues, insufficient memory, missing dependencies
+4. **AI Generation**: API timeouts, quota limits, inappropriate content filtering
+
+## Robust Error Handling Patterns
+
+```python
+# Example error handling for model loading
+try:
+    pipe = FluxPipeline.from_pretrained(model_id, torch_dtype=torch.float16)
+    pipe = pipe.to("cuda" if torch.cuda.is_available() else "cpu")
+except Exception as e:
+    st.error(f"Failed to load model: {str(e)}")
+    st.info("Try refreshing the page or contact support if the issue persists.")
+    return None
+```
+
+## Debugging Best Practices
+
+- Add logging statements before and after AI model operations
+- Display intermediate results (OCR text, processed prompts) for debugging
+- Use `st.write()` to display variable values during development
+- Implement verbose mode for detailed operation tracking
+
+## User Experience During Errors
+
+- Show informative error messages instead of technical stack traces
+- Provide actionable next steps when operations fail
+- Use `st.warning()` for recoverable issues
+- Use `st.error()` for critical failures
+- Implement retry mechanisms for transient failures
+
+## Performance Monitoring
+
+- Track model inference times
+- Monitor GPU memory usage
+- Log successful vs failed operations
+- Implement health checks for critical dependencies
+
+## Resource Management
+
+- Use context managers for file operations
+- Properly dispose of large objects (images, models)
+- Handle GPU memory cleanup
+- Implement timeouts for long-running operations
+
+## Testing Strategies
+
+- Test with various image formats and sizes
+- Test OCR with different menu styles and languages
+- Validate model outputs and handle edge cases
+- Test error recovery and fallback mechanisms

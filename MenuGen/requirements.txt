@@ -1,0 +1,16 @@
+streamlit
+huggingface_hub
+diffusers
+transformers
+torch
+Pillow
+pytesseract
+accelerate
+opencv-pythont
+huggingface_hub
+diffusers
+transformers
+# torch
+Pillow
+pytesseract
+accelerate

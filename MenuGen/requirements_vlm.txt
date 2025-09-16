@@ -1,0 +1,31 @@
+# Core Web Framework
+streamlit>=1.28.0
+
+# SmolVLM2 Dependencies
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.35.0  # Required for SmolVLM2 AutoModelForImageTextToText
+accelerate>=0.21.0
+
+# Image Generation (keep existing functionality)
+diffusers>=0.21.0
+
+# Image Processing
+Pillow>=9.0.0
+# opencv-python>=4.7.0  # Not needed for SmolVLM2
+
+# Hugging Face Hub
+huggingface_hub>=0.16.0
+
+# Utilities
+numpy>=1.24.0
+requests>=2.28.0
+
+# Optional Development Tools
+# pytest>=7.0.0
+# black>=22.0.0
+# flake8>=5.0.0
+
+# Note: pytesseract removed - we're using SmolVLM2 for direct image understanding
+# Note: opencv-python removed - not needed for SmolVLM2 approach
+# Note: timm removed - not needed for SmolVLM2

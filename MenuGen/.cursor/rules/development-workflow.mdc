@@ -1,0 +1,87 @@
+---
+description: Development workflow and version control guidelines
+---
+
+# Development Workflow & Version Control
+
+## 🔧 **Development Environment**
+
+### **Primary Development Files**
+- [`app_vlm.py`](mdc:app_vlm.py) - Main VLM-based application
+- [`requirements_vlm.txt`](mdc:requirements_vlm.txt) - VLM dependencies
+- [`test_smolvlm.py`](mdc:test_smolvlm.py) - Model testing and validation
+
+### **Testing & Experimentation**
+- [`test_vlm.py`](mdc:test_vlm.py) - General VLM model testing
+- [`MODEL_COMPARISON.md`](mdc:MODEL_COMPARISON.md) - Model research and benchmarks
+
+### **Legacy/Reference**
+- [`app.py`](mdc:app.py) - Original OCR-based version
+- [`requirements.txt`](mdc:requirements.txt) - Original dependencies
+
+## 📋 **Development Best Practices**
+
+### **When Making Changes**
+1. **Test First**: Use test files before modifying main app
+2. **Cache Management**: Always use `@st.cache_resource` for model loading
+3. **Error Handling**: Implement graceful degradation for all AI operations
+4. **Memory Management**: Monitor GPU usage during batch processing
+5. **User Feedback**: Provide progress indicators for long operations
+
+### **Model Updates**
+```python
+# Always follow this pattern for new models
+@st.cache_resource
+def load_new_model():
+    try:
+        # Model loading with device optimization
+        return model
+    except Exception as e:
+        st.error(f"Failed to load model: {e}")
+        return None
+```
+
+### **Dependency Management**
+- Pin specific versions in requirements files
+- Test compatibility with different PyTorch/CUDA versions
+- Update [`requirements_vlm.txt`](mdc:requirements_vlm.txt) for VLM changes
+- Keep legacy [`requirements.txt`](mdc:requirements.txt) for reference
+
+## 🗂️ **Version Control Strategy**
+
+### **Commit Message Conventions**
+- `feat:` New features (e.g., "feat: add auto-generation for all dishes")
+- `fix:` Bug fixes (e.g., "fix: handle empty menu detection gracefully")
+- `model:` Model changes (e.g., "model: upgrade to SmolVLM2-2.2B")
+- `ui:` Interface improvements (e.g., "ui: add progress tracking")
+- `docs:` Documentation updates (e.g., "docs: update model comparison")
+
+### **Branch Structure**
+- `main` - Production-ready VLM version
+- `feature/*` - New feature development
+- `model/*` - Model experiments and upgrades
+- `legacy` - OCR-based version preservation
+
+### **Release Process**
+1. **Feature Development** → Test thoroughly with various menu images
+2. **Model Validation** → Benchmark against previous versions
+3. **UI/UX Testing** → Ensure smooth user experience
+4. **Documentation** → Update relevant `.mdc` rules and comparisons
+5. **Deployment** → Merge to main with comprehensive commit message
+
+## 🧪 **Testing Checklist**
+
+### **Before Committing**
+- [ ] Test with diverse menu images (different cuisines, layouts)
+- [ ] Verify model loading works on both GPU and CPU
+- [ ] Check memory usage during batch processing
+- [ ] Validate error handling for edge cases
+- [ ] Ensure UI elements render correctly
+- [ ] Test progress tracking and status updates
+
+### **Model Changes**
+- [ ] Compare accuracy with previous version
+- [ ] Benchmark inference speed
+- [ ] Test GPU memory requirements
+- [ ] Validate output format consistency
+- [ ] Update model documentation in [`MODEL_COMPARISON.md`](mdc:MODEL_COMPARISON.md)

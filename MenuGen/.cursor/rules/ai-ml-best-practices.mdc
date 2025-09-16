@@ -1,0 +1,48 @@
+---
+globs: *.py
+description: AI and ML model handling guidelines for MenuGen
+---
+
+# AI/ML Model Best Practices
+
+## Model Loading and Initialization
+
+- Use `@st.cache_resource` for model loading to prevent reloading on each run
+- Check GPU availability with `torch.cuda.is_available()` before model initialization
+- Use appropriate data types (`torch.float16`) for memory optimization
+- Handle model loading errors with try-catch blocks
+
+## OCR Best Practices
+
+- Preprocess images for better OCR accuracy (contrast, brightness, noise reduction)
+- Use OpenCV for image preprocessing before OCR
+- Validate OCR output and provide fallback options
+- Consider different OCR engines for different image types
+
+## Image Generation Guidelines
+
+- Use specific, descriptive prompts for better image generation
+- Include style descriptors in prompts (e.g., "high-quality photograph")
+- Set reasonable inference parameters (steps, guidance scale)
+- Handle GPU memory management properly
+
+## Hugging Face Integration
+
+- Use appropriate task-specific pipelines
+- Handle model download timeouts and network issues
+- Cache model outputs when possible
+- Use smaller models for faster inference when appropriate
+
+## Error Handling and Fallbacks
+
+- Implement graceful degradation when models fail
+- Provide informative error messages for model-related issues
+- Consider offline fallback options
+- Monitor model performance and accuracy
+
+## Memory Management
+
+- Clear GPU cache when switching between models
+- Use context managers for resource cleanup
+- Monitor memory usage in production
+- Implement model unloading for memory-constrained environments
