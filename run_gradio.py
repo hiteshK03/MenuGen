@@ -19,3 +19,4 @@ if __name__ == "__main__":
         show_error=True,
         inbrowser=True  # Try to open browser automatically
     )
+

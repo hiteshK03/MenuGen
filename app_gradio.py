@@ -182,14 +182,26 @@ def parse_dish_names_from_response(response_text):
     
     return unique_dishes[:15]  # Limit to 15 dishes to avoid overwhelming the UI
 
-def generate_dish_image(dish_name, pipe):
+def generate_dish_image(dish_name, pipe, custom_prompt_template=None):
     """Generate an image of the dish"""
     if pipe is None:
         return None
         
     try:
         print(f"Generating image for {dish_name}")
-        prompt = f"A high-quality professional photograph of {dish_name}, food photography, appetizing"
+        
+        # Use custom prompt if provided, otherwise use default
+        if custom_prompt_template and custom_prompt_template.strip():
+            # Check if the custom prompt contains the dish_name placeholder
+            if "{dish_name}" in custom_prompt_template:
+                prompt = custom_prompt_template.format(dish_name=dish_name)
+            else:
+                # If no placeholder, append the dish name to the custom prompt
+                prompt = f"{custom_prompt_template}, {dish_name}"
+        else:
+            # Default prompt
+            prompt = f"A high-quality professional photograph of {dish_name}, food photography, appetizing"
+        
         image = pipe(
             prompt,
             guidance_scale=0.0,
@@ -202,7 +214,7 @@ def generate_dish_image(dish_name, pipe):
         print(f"Error generating image: {e}")
         return None
 
-def process_menu(image, debug_mode, progress=gr.Progress()):
+def process_menu(image, debug_mode, custom_prompt_template, progress=gr.Progress()):
     """Main processing function for the Gradio interface"""
     if image is None:
         return None, "Please upload a menu image first.", "", []
@@ -241,7 +253,7 @@ def process_menu(image, debug_mode, progress=gr.Progress()):
         progress_val = 0.5 + (0.5 * (idx + 1) / len(menu_items))
         progress(progress_val, desc=f"Generating image for {dish_name} ({idx + 1}/{len(menu_items)})...")
         
-        dish_image = generate_dish_image(dish_name, image_pipe)
+        dish_image = generate_dish_image(dish_name, image_pipe, custom_prompt_template)
         if dish_image:
             generated_images.append((dish_image, f"🍽️ {dish_name}"))
         else:
@@ -318,6 +330,15 @@ def create_interface():
                     value=False
                 )
                 
+                # Custom prompt input for flux model
+                flux_prompt_input = gr.Textbox(
+                    label="🎨 Custom Image Generation Prompt Template",
+                    placeholder="A high-quality professional photograph of {dish_name}, food photography, appetizing",
+                    info="Customize the prompt for FLUX image generation. Use {dish_name} as placeholder. Leave empty to use default.",
+                    lines=2,
+                    value=""
+                )
+                
                 process_btn = gr.Button(
                     "🚀 Process Menu",
                     variant="primary",
@@ -374,7 +395,7 @@ def create_interface():
         
         process_btn.click(
             fn=process_menu,
-            inputs=[image_input, debug_checkbox],
+            inputs=[image_input, debug_checkbox, flux_prompt_input],
             outputs=[image_input, status_output, debug_output, generated_gallery]
         )
     
@@ -388,3 +409,4 @@ def create_interface():
 #         share=True,
 #         show_error=True
 #     )
+
